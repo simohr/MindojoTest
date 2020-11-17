@@ -1473,6 +1473,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9befc98587a2e24c87ff8730310a5b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DrawLineActive: 1
   _letterData: {fileID: 11400000, guid: 127c438c807e7b245a0793178ac5b42f, type: 2}
   _letterPrefab: {fileID: 6615377427321701685, guid: c6acc6f99e88a874f8b35274d9c6f93a,
     type: 3}

@@ -9,7 +9,6 @@ public class DrawLine : MonoBehaviour
     private GameObject _currentLine;
     private LineRenderer _lineRenderer;
     private List<Vector3> _fingerPositions = new List<Vector3>();
-    private RectTransform _rectTransform;
     private LetterSpawner _letterSpawner;
 
     private Camera _camera;
@@ -21,7 +20,6 @@ public class DrawLine : MonoBehaviour
     {
         _camera = Camera.main;
         _canvas = GetComponent<Canvas>();
-        _rectTransform = GetComponent<RectTransform>();
         _letterSpawner = GetComponent<LetterSpawner>();
     }
 

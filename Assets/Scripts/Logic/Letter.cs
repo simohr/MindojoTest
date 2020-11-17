@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
+/// <summary>
+/// We use this structure to define a Line between 2 points
+/// </summary>
 public class StrokeLine
 {
 	public int Index;
@@ -19,8 +23,15 @@ public class Letter : MonoBehaviour
 	[SerializeField]
 	private GameObject _numberedCirclePrefab = null;
 
+	/// <summary>
+	/// Click offset - so we dont have to click the exact center of a circle
+	/// </summary>
 	[SerializeField]
-	private float _offset = 0;
+	private float _clickOffset = 0;
+
+	/// <summary>
+	/// _Distance offset - so when drawing a line we dont have to reach the exact meassured distance 
+	/// </summary>
 	[SerializeField]
 	private float _distanceOffset = 0;
 
@@ -28,20 +39,55 @@ public class Letter : MonoBehaviour
 
 	private List<RectTransform> _numberedCircles = new List<RectTransform>();
 
+	/// <summary>
+	/// List with all the lines that should be drawn
+	/// </summary>
 	private List<StrokeLine> _strokeLines = new List<StrokeLine>();
 
-	public int lineIndex = 0;
-	public int strokeIndex = 0;
+	/// <summary>
+	/// To track which line we are currently drawing
+	/// </summary>
+	private int _lineIndex = 0;
 
+	/// <summary>
+	/// To track on which stroke we currently are
+	/// </summary>
+	private int _strokeIndex = 0;
+
+	/// <summary>
+	/// To track mouse movement change
+	/// </summary>
 	private Vector2 _deltaPosition;
-	public float _trackedPositionMagnitude;
-	private Vector3 _previousPosition;
-	private Vector2 _vectorOffset;
 
+	/// <summary>
+	/// To store mouse movement change
+	/// </summary>
+	public float _trackedPositionMagnitude;
+
+	/// <summary>
+	/// To keep track of previous mouse position
+	/// </summary>
+	private Vector3 _previousMousePosition;
+
+	/// <summary>
+	/// Reference to parent so we can call win or lose screens to activate
+	/// </summary>
 	private LetterSpawner _letterSpawner;
+
+	/// <summary>
+	/// Position of the previous node so we can keep accurate track of trackingMagnitude
+	/// </summary>
 	private Vector3 _previousNodePosition;
+
+	/// <summary>
+	/// Previouse node
+	/// </summary>
 	private StrokeLine _previousNode;
 
+
+	/// <summary>
+	/// Canvas for calculating accurate positions
+	/// </summary>
 	private Canvas _canvas;
 
 	// Start is called before the first frame update
@@ -50,8 +96,7 @@ public class Letter : MonoBehaviour
 		_canvas = GetComponentInParent<Canvas>();
 		_letterSpawner = GetComponentInParent<LetterSpawner>();
 		_rectTransform = GetComponent<RectTransform>();
-		_vectorOffset = new Vector2(_offset, _offset);
-		_previousPosition = _canvas.ScreenToCanvasPosition(Input.mousePosition);
+		_previousMousePosition = _canvas.ScreenToCanvasPosition(Input.mousePosition);
 
 		Image image = GetComponent<Image>();
 		image.sprite = Data.Graphic;
@@ -68,7 +113,7 @@ public class Letter : MonoBehaviour
 			OnInputDown();
 		}
 
-		_deltaPosition = _canvas.ScreenToCanvasPosition(Input.mousePosition) - _previousPosition;
+		_deltaPosition = _canvas.ScreenToCanvasPosition(Input.mousePosition) - _previousMousePosition;
 
 		if (Input.GetMouseButton(0))
 		{
@@ -80,36 +125,36 @@ public class Letter : MonoBehaviour
 			OnInputUp();
 		}
 
-		_previousPosition = _canvas.ScreenToCanvasPosition(Input.mousePosition);
+		_previousMousePosition = _canvas.ScreenToCanvasPosition(Input.mousePosition);
 	}
 
 	private void OnInputDown()
 	{
-		if (lineIndex >= _strokeLines.Count)
+		if (_lineIndex >= _strokeLines.Count)
 			return;
 
-		if (IsPositionOnStrokePoint(_strokeLines[lineIndex].FirstPosition, _canvas.ScreenToCanvasPosition(Input.mousePosition)))
+		if (IsPositionOnStrokePoint(_strokeLines[_lineIndex].FirstPosition, _canvas.ScreenToCanvasPosition(Input.mousePosition)))
 		{
-			_previousPosition = _canvas.ScreenToCanvasPosition(Input.mousePosition);
+			_previousMousePosition = _canvas.ScreenToCanvasPosition(Input.mousePosition);
 			_trackedPositionMagnitude = 0;
-			_previousNodePosition = _strokeLines[lineIndex].FirstPosition;
-			_previousNode = _strokeLines[lineIndex];
+			_previousNodePosition = _strokeLines[_lineIndex].FirstPosition;
+			_previousNode = _strokeLines[_lineIndex];
 		}
 		else
 		{
-			lineIndex = -1;
+			_lineIndex = -1;
 		}
 	}
 
 	private void OnInput()
 	{
-		if (lineIndex >= _strokeLines.Count || lineIndex < 0)
+		if (_lineIndex >= _strokeLines.Count || _lineIndex < 0)
 			return;
 
 		_trackedPositionMagnitude += _deltaPosition.magnitude;
 		if (IsPositionOnStrokePoint(_previousNodePosition, _canvas.ScreenToCanvasPosition(Input.mousePosition)))
 		{
-			if(_trackedPositionMagnitude > _offset * 2)
+			if(_trackedPositionMagnitude > _clickOffset * 2)
 			{
 				_previousNode.IsLineProperlyDrawn = false;
 			}
@@ -117,16 +162,16 @@ public class Letter : MonoBehaviour
 		}
 		else
 		{
-			if (IsPositionOnStrokePoint(_strokeLines[lineIndex].SecondPosition, _canvas.ScreenToCanvasPosition(Input.mousePosition)))
+			if (IsPositionOnStrokePoint(_strokeLines[_lineIndex].SecondPosition, _canvas.ScreenToCanvasPosition(Input.mousePosition)))
 			{
-				if (_trackedPositionMagnitude <= _strokeLines[lineIndex].Distance + _distanceOffset / 3 &&
-					_trackedPositionMagnitude >= _strokeLines[lineIndex].Distance - _distanceOffset)
+				if (_trackedPositionMagnitude <= _strokeLines[_lineIndex].Distance + _distanceOffset / 3 &&
+					_trackedPositionMagnitude >= _strokeLines[_lineIndex].Distance - _distanceOffset)
 				{
-					_strokeLines[lineIndex].IsLineProperlyDrawn = true;
+					_strokeLines[_lineIndex].IsLineProperlyDrawn = true;
 					_trackedPositionMagnitude = 0;
-					_previousNodePosition = _strokeLines[lineIndex].SecondPosition;
-					_previousNode = _strokeLines[lineIndex];
-					lineIndex++;
+					_previousNodePosition = _strokeLines[_lineIndex].SecondPosition;
+					_previousNode = _strokeLines[_lineIndex];
+					_lineIndex++;
 				}
 			}
 		}
@@ -134,21 +179,21 @@ public class Letter : MonoBehaviour
 
 	private void OnInputUp()
 	{
-		if (lineIndex >= _strokeLines.Count)
+		if (_lineIndex >= _strokeLines.Count)
 		{
 			_letterSpawner.ShowWinScreen();
 			ResetIndexes();
 		}
 
 
-		if (lineIndex < 0)
+		if (_lineIndex < 0)
 		{
 			_letterSpawner.ShowLoseScreen();
 			ResetIndexes();
 			return;
 		}
 
-		int lineCount = Data.PositionsPerStroke[strokeIndex] - 1;
+		int lineCount = Data.PositionsPerStroke[_strokeIndex] - 1;
 
 		for (int i = 0; i < lineCount; i++)
 		{
@@ -160,13 +205,13 @@ public class Letter : MonoBehaviour
 			}
 		}
 
-		strokeIndex++;
+		_strokeIndex++;
 	}
 
 	private void ResetIndexes()
 	{
-		lineIndex = 0;
-		strokeIndex = 0;
+		_lineIndex = 0;
+		_strokeIndex = 0;
 		Destroy(gameObject);
 	}
 
@@ -223,8 +268,8 @@ public class Letter : MonoBehaviour
 
 	private bool IsPositionOnStrokePoint(Vector2 strokePoint, Vector2 mousePosition)
 	{
-		if (mousePosition.x < strokePoint.x + _vectorOffset.x && mousePosition.x > strokePoint.x - _vectorOffset.x &&
-			mousePosition.y < strokePoint.y + _vectorOffset.y && mousePosition.y > strokePoint.y - _vectorOffset.y)
+		if (mousePosition.x < strokePoint.x + _clickOffset && mousePosition.x > strokePoint.x - _clickOffset &&
+			mousePosition.y < strokePoint.y + _clickOffset && mousePosition.y > strokePoint.y - _clickOffset)
 			return true;
 
 		return false;
