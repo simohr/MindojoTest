@@ -90,8 +90,6 @@ MonoBehaviour:
   Data: {fileID: 0}
   _numberedCirclePrefab: {fileID: 7939980158042766344, guid: f1262f81899823147bda2a0a3e1f7a60,
     type: 3}
-  _offset: 35
+  _clickOffset: 35
   _distanceOffset: 60
-  lineIndex: 0
-  strokeIndex: 0
   _trackedPositionMagnitude: 0
